@@ -297,6 +297,32 @@ open class HTTP {
         return httpReq
     }
     
+    //MARK: - PA Method
+    /**
+     Class method to create a POST request that handles the NSMutableURLRequest and parameter encoding for you.
+     */
+    open class func PAPOST(_ url: String, body: Data? = nil, headers: [String:String]? = nil, requestSerializer: HTTPSerializeProtocol = HTTPParameterSerializer()) throws -> HTTP  {
+        return try HTTP.PANew(url, method: .POST, body: body, headers: headers, requestSerializer: requestSerializer)
+    }
+    
+    open class func PANew(_ url: String, method: HTTPVerb, body: Data? = nil, headers: [String:String]? = nil, requestSerializer: HTTPSerializeProtocol = HTTPParameterSerializer(), isDownload: Bool = false) throws -> HTTP  {
+        
+        guard var req = URLRequest(urlString: url) else { throw HTTPOptError.invalidRequest }
+        if let handler = DelegateManager.sharedInstance.requestHandler {
+            handler(&req)
+        }
+        
+        req.verb = method
+        req.httpBody = body
+        
+        if let heads = headers {
+            for (key,value) in heads {
+                req.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        return HTTP(req as URLRequest, isDownload: isDownload)
+    }
+    
     /**
     Set the global auth handler
     */
